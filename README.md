@@ -1,7 +1,28 @@
 # Intelligent Media Processing Pipeline
 
-Async backend for uploading vehicle images, running quality/validity checks
-on them in the background, and exposing status + structured results via API.
+Async backend for uploading vehicle images, running quality and validity
+checks in the background, and exposing status plus structured results via an
+API and a simple web dashboard.
+
+## Features
+
+- Upload vehicle images through the REST API or the built-in web UI
+- Process images asynchronously using Redis/RQ or an inline fallback queue
+- Run multiple validation checks such as blur, brightness, screenshot,
+  tamper, OCR plate format, and duplicate detection
+- Return per-check results with confidence scores and human-readable details
+
+## Screenshots
+
+Place your screenshots in the images folder and reference them here:
+
+```md
+![Upload dashboard](images/1-upload-dashboard.png)
+![Processing results](images/2-processing-results.png)
+![API results](images/3-api-results.png)
+```
+
+Replace the example filenames with your actual image files when you add them.
 
 ## Architecture
 
@@ -40,6 +61,33 @@ make sense if this were deployed on AWS and needed managed durability/DLQs
 without running Redis at all. The processing logic in `tasks.py` doesn't
 depend on RQ specifics beyond the function signature, so swapping the queue
 backend later is mostly a matter of changing `main.py`/`worker.py`.
+
+### Two queue backends (`QUEUE_BACKEND` env var)
+
+The app supports two interchangeable modes, controlled by one environment
+variable, without touching the check/processing logic at all:
+
+- **`QUEUE_BACKEND=rq`** (default) — the "real" architecture described
+  above: Redis + RQ + a separate worker process. This is what
+  `docker-compose.yml` runs, and what the main `render.yaml` deploys.
+- **`QUEUE_BACKEND=inline`** — no Redis, no separate worker. The API
+  process itself runs each job in a background thread via FastAPI's
+  `BackgroundTasks`, right after returning the `202` response. This is
+  what `render.free.yaml` deploys, since it lets the whole app run as a
+  single free-tier web service (no paid Background Worker, no Redis
+  add-on required).
+
+Both paths call the exact same `process_image()` function, so the checks,
+DB writes, and status transitions are identical either way — only how the
+job gets scheduled differs. The trade-off with `inline` is real, though:
+a job is only in memory once accepted, so if the process restarts or
+redeploys mid-job, that job is silently lost (no dead-letter queue, no
+automatic retry across a crash) and the image stays stuck in `processing`
+forever. `rq` mode survives worker restarts because the job lives in
+Redis until acknowledged. `inline` is a legitimate, explicitly-allowed
+choice per the assignment ("in-memory queue" is listed as valid) — it's
+just a different point on the durability-vs-infrastructure-cost line, and
+appropriate for a demo deployment rather than production.
 
 ### Processing/analysis strategy
 
@@ -145,6 +193,30 @@ This starts Postgres, Redis, the API (port 8000), and a worker. Tables are
 created automatically on API startup.
 
 API docs (Swagger UI): http://localhost:8000/docs
+
+### Dashboard
+
+A minimal upload/status dashboard is served at http://localhost:8000/ — drag
+or click to upload an image, watch its status update live, and expand it to
+see the per-check results without needing curl or Swagger. This is a bonus
+convenience layer on top of the API; the API itself is the graded surface.
+
+### Deploying for free (Render)
+
+Deployment isn't required by the assignment, but two Render blueprints are
+included if you want it live:
+
+- `render.yaml` — the full architecture (API + worker + Postgres + Redis).
+  Render has no free Background Worker tier, so this requires a paid
+  ($7/mo) plan for the worker service specifically.
+- `render.free.yaml` — single web service running with
+  `QUEUE_BACKEND=inline` (see architecture section above) + free Postgres.
+  No worker, no Redis, nothing paid. In the Render dashboard: **New →
+  Blueprint**, point it at this repo, and select `render.free.yaml` as the
+  blueprint file. Note Render's free web service has no persistent disk,
+  so uploaded files won't survive a restart/redeploy -- fine for a demo
+  click-through, not for real persistence (swap `storage.py` for S3 to fix
+  that properly).
 
 ### Running tests
 
