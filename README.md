@@ -14,13 +14,19 @@ API and a simple web dashboard.
 
 ## Screenshots
 
-The output images are stored in the images folder and can be displayed here:
+The output images are stored in the `images/` folder and are shown below.
 
-```md
-![Upload dashboard](images/image_1.jpeg)
-![Processing results](images/image_2.jpeg)
-![API results](images/image_3.jpeg)
-```
+1st image output
+
+![1st image output](images/image_1_output.png)
+
+2nd image output
+
+![2nd image output](images/image_2_output.png)
+
+3rd image output
+
+![3rd image output](images/image_3_output.png)
 
 ## Architecture
 
