@@ -18,15 +18,15 @@ The output images are stored in the `images/` folder and are shown below.
 
 1st image output
 
-![1st image output](images/image_1_output.png)
+![image_1_output](images/image_1_output.png)
 
 2nd image output
 
-![2nd image output](images/image_2_output.png)
+![image_2_output](images/image_2_output.png)
 
 3rd image output
 
-![3rd image output](images/image_3_output.png)
+![image_3_output](images/image_3_output.png)
 
 ## Architecture
 
