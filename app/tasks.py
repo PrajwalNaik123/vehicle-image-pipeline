@@ -24,6 +24,7 @@ def process_image(image_id: str):
     session across threads/processes/requests).
     """
     db = SessionLocal()
+    logger.info("process_image STARTED for image_id=%s", image_id)
     try:
         image = db.query(Image).filter(Image.id == image_id).one_or_none()
         if image is None:
