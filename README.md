@@ -14,15 +14,13 @@ API and a simple web dashboard.
 
 ## Screenshots
 
-Place your screenshots in the images folder and reference them here:
+The output images are stored in the images folder and can be displayed here:
 
 ```md
-![Upload dashboard](images/1-upload-dashboard.png)
-![Processing results](images/2-processing-results.png)
-![API results](images/3-api-results.png)
+![Upload dashboard](images/image_1.jpeg)
+![Processing results](images/image_2.jpeg)
+![API results](images/image_3.jpeg)
 ```
-
-Replace the example filenames with your actual image files when you add them.
 
 ## Architecture
 
